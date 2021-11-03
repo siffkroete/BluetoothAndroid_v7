@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">BluetoothAndroid_v7</string>
+    <string name="start_ble_scan">Start Scan</string>
+</resources>
