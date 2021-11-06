@@ -39,8 +39,8 @@ class ScanResultAdapter(
     ) : RecyclerView.ViewHolder(view) {
 
         fun bind(result: ScanResult) {
-            view.device_name.text = result.device.name ?: "Unnamed"
-            view.mac_address.text = result.device.address
+            view.device_name.text = "Device Name: " + result.device.name ?: "Unnamed"
+            view.mac_address.text = "MAC Adresse: " + result.device.address
             view.signal_strength.text = "${result.rssi} dBm"
             view.setOnClickListener { onClickListener.invoke(result) }
         }

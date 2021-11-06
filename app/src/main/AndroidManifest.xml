@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
+
     <!-- Das ist damit Users die kein Bluetooth device haben in Google Play Store diese App gar nicht erst zu Gesicht bekommen -->
     <uses-feature
         android:name="android.hardware.bluetooth_le"

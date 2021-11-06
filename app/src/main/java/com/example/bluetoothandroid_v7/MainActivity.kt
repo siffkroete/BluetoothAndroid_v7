@@ -3,8 +3,6 @@ package com.example.bluetoothandroid_v7
 import android.Manifest
 import android.R.attr
 import android.app.Activity
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
@@ -25,12 +23,13 @@ import com.example.bluetoothandroid_v7.ScanResultAdapter
 import android.widget.Toast
 
 import android.R.attr.data
+import android.bluetooth.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.google.android.material.internal.ContextUtils.getActivity
 import kotlinx.android.synthetic.main.activity_main.*
-
+import java.security.AccessController.getContext
 
 
 private const val ENABLE_BLUETOOTH_REQUEST_CODE = 1
@@ -38,6 +37,18 @@ private const val LOCATION_PERMISSION_REQUEST_CODE = 2
 
 
 class MainActivity : AppCompatActivity() {
+
+    private var gatt: BluetoothGatt? = null
+
+    private fun log(msg: String, msg2: String = "") {
+        val outMsg: String = msg + msg2;
+        Toast.makeText(
+            applicationContext,
+            outMsg + this.toString(),
+            Toast.LENGTH_LONG
+        ).show()
+        Log.i(this.toString(), outMsg)
+    }
 
     private var scanButton: Button? = null
         get() = field
@@ -51,12 +62,30 @@ class MainActivity : AppCompatActivity() {
             if (isScanning) {
                 stopBleScan()
             }
-            /*
+
             with(result.device) {
-                Log.i("scanResultAdapter", "Connecting to $address")
-                ConnectionManager.connect(this, this@MainActivity)
+                log("scanResultAdapter", "Connecting to $address")
+                connectGatt(this@MainActivity, false, gattCallback)
             }
-            */
+        }
+    }
+    private val gattCallback = object : BluetoothGattCallback() {
+        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+            val deviceAddress = gatt.device.address
+
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    log("BluetoothGattCallback", "Successfully connected to $deviceAddress")
+                    // Store a reference to BluetoothGatt
+                    this@MainActivity.gatt = gatt
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    log("BluetoothGattCallback", "Successfully disconnected from $deviceAddress")
+                    gatt.close()
+                }
+            } else {
+                    log("BluetoothGattCallback", "Error $status encountered for $deviceAddress! Disconnecting...")
+                gatt.close()
+            }
         }
     }
     private fun setupRecyclerView() {
@@ -226,11 +255,7 @@ class MainActivity : AppCompatActivity() {
                 scanResultAdapter.notifyItemChanged(indexQuery)
            } else {
                 with(result.device) {
-                    Toast.makeText(
-                        applicationContext, "Adresse" + address as String?,
-                        Toast.LENGTH_LONG
-                    ).show()
-                    Log.i("ScanCallback", "Found BLE device! Name: ${name ?: "Unnamed"}, address: $address")
+                    log("ScanCallback", "Found BLE device! Name: ${name ?: "Unnamed"}, address: $address")
                 }
                 scanResults.add(result)
                 scanResultAdapter.notifyItemInserted(scanResults.size - 1)
@@ -238,7 +263,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onScanFailed(errorCode: Int) {
-            Log.e("ScanCallback", "onScanFailed: code $errorCode")
+            log("ScanCallback", "onScanFailed: code $errorCode")
         }
     }
 }
